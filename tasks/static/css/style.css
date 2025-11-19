@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+
+body {
+    font-family: 'Inria Sans', sans-serif;
+    font-size: 16px;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.action-icon {
+    cursor: pointer;
+    transition: color ease-in-out 0.3s;
+    font-size: 18px;
+    padding-left: 5px;
+}
+
+.checkbox-btn {
+    color: rgb(41, 150, 41);
+}
+
+.checkbox-btn:hover {
+    color: rgb(0, 93, 0);
+}
+
+.delete-btn {
+    color: rgb(150, 41, 41);
+}
+
+.delete-btn:hover {
+    color: rgb(93, 0, 0);
+}
+
+#add-task-btn {
+    margin-top: 31px;
+}

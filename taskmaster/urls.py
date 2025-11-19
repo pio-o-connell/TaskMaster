@@ -19,5 +19,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Include the tasks app URL patterns (this registers named routes like 'task-complete')
     path('', include('tasks.urls')),
 ]
