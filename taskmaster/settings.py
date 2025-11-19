@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,12 +80,43 @@ WSGI_APPLICATION = 'taskmaster.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
+DATABASES = {}
+
+# Configure database from env.py `DATABASE_URL` or fallback to sqlite3.
+try:
+    from env import DATABASE_URL
+except Exception:
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # Use dj-database-url to parse the URL into Django DATABASES config
+    try:
+        import dj_database_url
+
+        # conn_max_age helps with persistent connections in production
+        DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    except Exception:
+        # If dj_database_url isn't available for some reason, fall back to manual parse
+        parsed = urlparse(DATABASE_URL)
+        if parsed.scheme.startswith('postgres') or parsed.scheme.startswith('postgresql'):
+            DATABASES['default'] = {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': parsed.path[1:],
+                'USER': parsed.username,
+                'PASSWORD': parsed.password,
+                'HOST': parsed.hostname,
+                'PORT': parsed.port or '',
+            }
+        else:
+            DATABASES['default'] = {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+else:
+    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
 
 
 # Password validation

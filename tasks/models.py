@@ -1,14 +1,21 @@
 from django.db import models
 
 
-class Task(models.Model):
-	title = models.CharField(max_length=200)
-	description = models.TextField(blank=True)
-	completed = models.BooleanField(default=False)
-	created_at = models.DateTimeField(auto_now_add=True)
+class Category(models.Model):
+	name = models.CharField(max_length=200)
 
 	class Meta:
-		ordering = ['-created_at']
+		verbose_name_plural = 'categories'
+
+	def __str__(self):
+		return self.name
+
+
+class Task(models.Model):
+	title = models.CharField(max_length=255)
+	due_date = models.DateField(null=True, blank=True)
+	is_completed = models.BooleanField(default=False)
+	category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='tasks')
 
 	def __str__(self):
 		return self.title
