@@ -33,3 +33,57 @@ body {
 #add-task-btn {
     margin-top: 31px;
 }
+
+/* Form layout for the Task form placed under the heading */
+.task-form .row {
+        margin-bottom: 0;
+}
+.task-form .form-control {
+        min-width: 0; /* allow flex children to shrink */
+}
+
+/* Desktop / wide screens: inline fields */
+.task-form .task-create-helper {
+        display: flex;
+        gap: .5rem;
+        align-items: flex-end;
+}
+.title-field {
+        flex: 1 1 400px; /* grow and fill remaining space */
+}
+.date-field {
+        flex: 0 0 160px;
+        max-width: 160px;
+}
+.category-field {
+        flex: 0 0 200px;
+        max-width: 220px;
+}
+
+/* Media query for widths between 663px and 786px (tablet narrow) */
+@media (min-width: 663px) and (max-width: 786px) {
+    .task-form .task-create-helper {
+        gap: .5rem;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+    .title-field { flex: 1 1 280px; }
+    .date-field { flex: 0 0 140px; max-width: 140px; }
+    .category-field { flex: 0 0 160px; max-width: 160px; }
+}
+
+/* Media query for small screens: 320px - 663px (stack fields vertically) */
+@media (min-width: 320px) and (max-width: 663px) {
+    .task-form .task-create-helper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .title-field, .date-field, .category-field {
+        width: 100%;
+        max-width: none;
+    }
+    #add-task-btn {
+        width: 100%;
+        margin-top: .5rem;
+    }
+}
