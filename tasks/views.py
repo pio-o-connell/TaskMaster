@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 from .models import Task
 from .forms import TaskForm
 
@@ -32,6 +33,7 @@ def index(request):
     return render(request, 'tasks/index.html', context)
 
 
+@require_POST
 def mark_complete(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if not task.is_completed:
@@ -41,6 +43,7 @@ def mark_complete(request, pk):
     return redirect('index')
 
 
+@require_POST
 def reopen_task(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if task.is_completed:
@@ -50,9 +53,25 @@ def reopen_task(request, pk):
     return redirect('index')
 
 
+@require_POST
 def delete_task(request, pk):
     task = get_object_or_404(Task, pk=pk)
     title = task.title
     task.delete()
     messages.success(request, f'Task "{title}" deleted.')
     return redirect('index')
+
+
+def edit_task(request, pk):
+    """Simple edit view for Task using the existing TaskForm."""
+    task = get_object_or_404(Task, pk=pk)
+    if request.method == 'POST':
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Task "{task.title}" updated.')
+            return redirect('index')
+    else:
+        form = TaskForm(instance=task)
+
+    return render(request, 'tasks/edit_task.html', {'form': form, 'task': task})

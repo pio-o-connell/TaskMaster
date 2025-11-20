@@ -114,6 +114,64 @@ class TaskModelTest(TestCase):
         with self.assertRaises(ValidationError):
             task.full_clean()
 
+
+class TaskModelEdgeCasesTest(TestCase):
+    """Edge-case tests for the Task model."""
+
+    def setUp(self):
+        from tasks.models import Category
+        self.category = Category.objects.create(name='EdgeCategory')
+
+    def test_save_raises_on_title_too_long_via_save(self):
+        from tasks.models import Task
+        from django.core.exceptions import ValidationError
+        max_len = Task._meta.get_field('title').max_length
+        long_title = 'T' * (max_len + 1)
+        t = Task(title=long_title, category=self.category)
+        with self.assertRaises(ValidationError):
+            t.save()
+
+    def test_full_clean_raises_on_title_too_long(self):
+        from tasks.models import Task
+        from django.core.exceptions import ValidationError
+        max_len = Task._meta.get_field('title').max_length
+        long_title = 'T' * (max_len + 1)
+        t = Task(title=long_title, category=self.category)
+        with self.assertRaises(ValidationError):
+            t.full_clean()
+
+    def test_empty_title_full_clean_raises(self):
+        from tasks.models import Task
+        from django.core.exceptions import ValidationError
+        t = Task(title='', category=self.category)
+        with self.assertRaises(ValidationError):
+            t.full_clean()
+
+    def test_category_required_db_constraint(self):
+        from tasks.models import Task
+        from django.db import IntegrityError, transaction
+        t = Task(title='No category')
+        # Saving without a category should fail at the DB level (NOT NULL constraint)
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                t.save()
+
+    def test_default_queryset_respects_meta_ordering(self):
+        from tasks.models import Task
+        ordering = getattr(Task._meta, 'ordering', None)
+        if not ordering:
+            self.skipTest('Task.Meta.ordering is not defined')
+
+        # Create tasks with various due_date values (including None)
+        Task.objects.all().delete()
+        Task.objects.create(title='T1', due_date=None, category=self.category)
+        Task.objects.create(title='T2', due_date=datetime.date(2025, 1, 2), category=self.category)
+        Task.objects.create(title='T3', due_date=datetime.date(2025, 1, 1), category=self.category)
+
+        default_qs = list(Task.objects.all())
+        explicit_qs = list(Task.objects.order_by(*ordering))
+        self.assertEqual(default_qs, explicit_qs)
+
             
 if __name__ == '__main__':
     # Allow running this test module directly for quick feedback.

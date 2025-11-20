@@ -42,9 +42,15 @@
                 <td>{% if task.due_date %}{{ task.due_date }}{% else %}-{% endif %}</td>
                 <td>{{ task.category }}</td>
                 <td>
-                  <a href="#" class="text-success me-2" title="Mark completed"><i class="fa-solid fa-check fa-fw"></i></a>
-                  <a href="#" class="text-primary me-2" title="Edit"><i class="fa-solid fa-pen-to-square fa-fw"></i></a>
-                  <a href="#" class="text-danger" title="Delete"><i class="fa-solid fa-trash fa-fw"></i></a>
+                  <form method="post" action="{% url 'task-complete' task.pk %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link p-0 text-success me-2" title="Mark completed"><i class="fa-solid fa-check fa-fw"></i></button>
+                  </form>
+                  <a href="{% url 'task-edit' task.pk %}" class="text-primary me-2" title="Edit"><i class="fa-solid fa-pen-to-square fa-fw"></i></a>
+                  <form method="post" action="{% url 'task-delete' task.pk %}" style="display:inline" onsubmit="return confirm('Delete this task?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link p-0 text-danger" title="Delete"><i class="fa-solid fa-trash fa-fw"></i></button>
+                  </form>
                 </td>
               </tr>
             {% empty %}
@@ -76,9 +82,15 @@
                 <td>{% if task.due_date %}{{ task.due_date }}{% else %}-{% endif %}</td>
                 <td>{{ task.category }}</td>
                 <td>
-                  <a href="#" class="text-secondary me-2" title="Reopen"><i class="fa-solid fa-rotate-left fa-fw"></i></a>
-                  <a href="#" class="text-primary me-2" title="Edit"><i class="fa-solid fa-pen-to-square fa-fw"></i></a>
-                  <a href="#" class="text-danger" title="Delete"><i class="fa-solid fa-trash fa-fw"></i></a>
+                  <form method="post" action="{% url 'task-reopen' task.pk %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link p-0 text-secondary me-2" title="Reopen"><i class="fa-solid fa-rotate-left fa-fw"></i></button>
+                  </form>
+                  <a href="{% url 'task-edit' task.pk %}" class="text-primary me-2" title="Edit"><i class="fa-solid fa-pen-to-square fa-fw"></i></a>
+                  <form method="post" action="{% url 'task-delete' task.pk %}" style="display:inline" onsubmit="return confirm('Delete this task?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link p-0 text-danger" title="Delete"><i class="fa-solid fa-trash fa-fw"></i></button>
+                  </form>
                 </td>
               </tr>
             {% empty %}
