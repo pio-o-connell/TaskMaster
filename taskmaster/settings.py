@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -99,35 +100,43 @@ try:
 except Exception:
     DATABASE_URL = os.environ.get('DATABASE_URL')
 
-if DATABASE_URL:
-    # Use dj-database-url to parse the URL into Django DATABASES config
-    try:
-        import dj_database_url
-
-        # conn_max_age helps with persistent connections in production
-        DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-    except Exception:
-        # If dj_database_url isn't available for some reason, fall back to manual parse
-        parsed = urlparse(DATABASE_URL)
-        if parsed.scheme.startswith('postgres') or parsed.scheme.startswith('postgresql'):
-            DATABASES['default'] = {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': parsed.path[1:],
-                'USER': parsed.username,
-                'PASSWORD': parsed.password,
-                'HOST': parsed.hostname,
-                'PORT': parsed.port or '',
-            }
-        else:
-            DATABASES['default'] = {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-else:
+# If running tests, always use a local sqlite database to avoid touching the
+# configured Postgres/remote DB. This makes test runs reliable and fast.
+if 'test' in sys.argv:
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'test_db.sqlite3',
     }
+else:
+    if DATABASE_URL:
+        # Use dj-database-url to parse the URL into Django DATABASES config
+        try:
+            import dj_database_url
+
+            # conn_max_age helps with persistent connections in production
+            DATABASES['default'] = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+        except Exception:
+            # If dj_database_url isn't available for some reason, fall back to manual parse
+            parsed = urlparse(DATABASE_URL)
+            if parsed.scheme.startswith('postgres') or parsed.scheme.startswith('postgresql'):
+                DATABASES['default'] = {
+                    'ENGINE': 'django.db.backends.postgresql',
+                    'NAME': parsed.path[1:],
+                    'USER': parsed.username,
+                    'PASSWORD': parsed.password,
+                    'HOST': parsed.hostname,
+                    'PORT': parsed.port or '',
+                }
+            else:
+                DATABASES['default'] = {
+                    'ENGINE': 'django.db.backends.sqlite3',
+                    'NAME': BASE_DIR / 'db.sqlite3',
+                }
+    else:
+        DATABASES['default'] = {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
 
 
 # Password validation
