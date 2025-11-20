@@ -37,8 +37,10 @@ if not SECRET_KEY:
         SECRET_KEY = 'django-insecure--k&p!@%6x3#xgn)#&gd+*)@q2_v(23r==#-)7b6l&$@udi-n&&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG is controlled via env var; default to False in production.
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# Explicitly set DEBUG to False for production-safe defaults.
+# To enable debugging for local development, set the environment
+# variable `DEBUG` to 'True' or override this file.
+DEBUG = False
 
 # ALLOWED_HOSTS can be provided as a comma-separated env var (e.g. '.herokuapp.com,example.com')
 raw_allowed = os.environ.get('ALLOWED_HOSTS', '')
