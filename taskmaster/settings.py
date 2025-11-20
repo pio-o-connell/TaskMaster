@@ -42,12 +42,13 @@ if not SECRET_KEY:
 # variable `DEBUG` to 'True' or override this file.
 DEBUG = False
 
-# ALLOWED_HOSTS can be provided as a comma-separated env var (e.g. '.herokuapp.com,example.com')
-raw_allowed = os.environ.get('ALLOWED_HOSTS', '')
-if raw_allowed:
-    ALLOWED_HOSTS = [h.strip() for h in raw_allowed.split(',') if h.strip()]
-else:
-    ALLOWED_HOSTS = []
+# Explicit ALLOWED_HOSTS for local development and Heroku deployment.
+# Keep this list small and explicit; extend via environment variables if needed.
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.herokuapp.com',
+]
 
 
 # Application definition
