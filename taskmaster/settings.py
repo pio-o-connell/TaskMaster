@@ -23,17 +23,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-try:
-    # Try to load SECRET_KEY from a local `env.py` file (not checked into VCS).
-    from env import SECRET_KEY  # env.py lives in the project root (next to manage.py)
-except Exception:
-    # Fallback to the auto-generated key (useful for quick dev setups)
-    SECRET_KEY = 'django-insecure--k&p!@%6x3#xgn)#&gd+*)@q2_v(23r==#-)7b6l&$@udi-n&&'
+# Prefer environment variable (Heroku config vars). Fall back to local env.py for
+# developer convenience, then to a generated dev key.
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    try:
+        # Try to load SECRET_KEY from a local `env.py` file (not checked into VCS).
+        from env import SECRET_KEY as _ENV_SECRET
+
+        SECRET_KEY = _ENV_SECRET
+    except Exception:
+        # Fallback to the auto-generated key (useful for quick dev setups)
+        SECRET_KEY = 'django-insecure--k&p!@%6x3#xgn)#&gd+*)@q2_v(23r==#-)7b6l&$@udi-n&&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG is controlled via env var; default to False in production.
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS can be provided as a comma-separated env var (e.g. '.herokuapp.com,example.com')
+raw_allowed = os.environ.get('ALLOWED_HOSTS', '')
+if raw_allowed:
+    ALLOWED_HOSTS = [h.strip() for h in raw_allowed.split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -60,6 +72,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -183,8 +196,20 @@ STATICFILES_DIRS = [
 ]
 # Where `collectstatic` will copy files for production
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Use WhiteNoise compressed manifest storage in production for efficient static serving
+STATICFILES_STORAGE = os.environ.get(
+    'STATICFILES_STORAGE',
+    'whitenoise.storage.CompressedManifestStaticFilesStorage',
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Production security settings (can be toggled via env vars)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True') == 'True'
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'True') == 'True'
+# Redirect to HTTPS in production if explicitly enabled
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False') == 'True'
